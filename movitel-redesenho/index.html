@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  PROJECTO: Redesenho do website da Movitel (secção de Pacotes)
+  DISCIPLINA: Tecnologias Web
+  ESTRUTURA DOS FICHEIROS:
+    index.html     -> estrutura (HTML semântico)
+    css/style.css  -> estilo responsivo (Grid, Flexbox, media queries)
+    js/app.js      -> lógica (DOM, pesquisa, ordenação, localStorage)
+  NOTA: os pacotes e preços são EXEMPLOS. Substitua-os pelos dados
+  reais do site da Movitel em js/app.js (constante PACOTES_INICIAIS).
+  ============================================================
+-->
+<html lang="pt-MZ" data-tema="claro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pacotes Movitel – redesenho</title>
+  <meta name="description" content="Encontre, compare e organize pacotes de internet, voz e SMS de forma rápida.">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- "defer": o JavaScript só corre depois de o HTML estar carregado (carregamento mais rápido) -->
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- Atalho para quem navega com teclado ou leitor de ecrã -->
+  <a class="salto" href="#conteudo">Saltar para o conteúdo</a>
+
+  <!-- ===================== CABEÇALHO E NAVEGAÇÃO ===================== -->
+  <header class="topo">
+    <div class="contentor topo__interior">
+      <a class="marca" href="#conteudo" aria-label="Movitel – pacotes">Movitel<span class="marca__sub">pacotes</span></a>
+
+      <nav aria-label="Principal">
+        <ul class="menu">
+          <li><a href="#pacotes">Pacotes</a></li>
+          <li><a href="#comparar">Comparar</a></li>
+          <li><a href="#novo">Novo pacote</a></li>
+          <li><a href="#melhorias">Melhorias</a></li>
+        </ul>
+      </nav>
+
+      <button id="btn-tema" class="botao botao--leve" type="button" aria-pressed="false">Tema escuro</button>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ===================== PESQUISA (primeira coisa que o utilizador vê) ===================== -->
+    <section class="achar" aria-labelledby="titulo-achar">
+      <div class="contentor">
+        <h1 id="titulo-achar">Qual é o pacote certo para si?</h1>
+        <p class="achar__ajuda">Escreva o que procura, por exemplo <em>internet mensal</em> ou <em>chamadas</em>.</p>
+
+        <div class="pesquisa">
+          <label for="busca" class="so-leitor">Pesquisar pacotes por nome, categoria ou descrição</label>
+          <input id="busca" type="search" placeholder="Pesquisar pacotes" autocomplete="off" spellcheck="false">
+        </div>
+
+        <!-- Filtros por categoria: botões com aria-pressed (o leitor de ecrã sabe qual está activo) -->
+        <div class="chips" role="group" aria-label="Filtrar por categoria">
+          <button type="button" class="chip" data-categoria="todos" aria-pressed="true">Todos</button>
+          <button type="button" class="chip" data-categoria="internet" aria-pressed="false">Internet</button>
+          <button type="button" class="chip" data-categoria="voz" aria-pressed="false">Voz</button>
+          <button type="button" class="chip" data-categoria="sms" aria-pressed="false">SMS</button>
+          <button type="button" class="chip" data-categoria="combo" aria-pressed="false">Combinados</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== LISTA DE PACOTES ===================== -->
+    <section id="pacotes" class="seccao" aria-labelledby="titulo-pacotes">
+      <div class="contentor">
+        <h2 id="titulo-pacotes">Pacotes disponíveis</h2>
+
+        <div class="barra">
+          <p id="contagem" class="barra__contagem" role="status" aria-live="polite"></p>
+
+          <div class="barra__controlos">
+            <div class="campo campo--linha">
+              <label for="filtro-periodo">Período</label>
+              <select id="filtro-periodo">
+                <option value="todos">Todos</option>
+                <option value="diario">Diário</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+
+            <div class="campo campo--linha">
+              <label for="ordem">Ordenar por</label>
+              <select id="ordem">
+                <option value="preco-asc">Preço: do mais baixo</option>
+                <option value="preco-desc">Preço: do mais alto</option>
+                <option value="nome">Nome (A–Z)</option>
+                <option value="data-desc">Mais recentes</option>
+                <option value="validade-desc">Maior validade</option>
+              </select>
+            </div>
+
+            <button id="btn-limpar" class="botao botao--leve" type="button">Limpar filtros</button>
+          </div>
+        </div>
+
+        <ul id="lista" class="grelha" aria-label="Lista de pacotes"></ul>
+
+        <!-- Estado vazio: diz o que fazer a seguir -->
+        <div id="vazio" class="vazio" hidden>
+          <p><strong>Nenhum pacote encontrado.</strong></p>
+          <p>Tente outra palavra ou limpe os filtros.</p>
+          <button id="btn-limpar-vazio" class="botao" type="button">Limpar filtros</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== COMPARAÇÃO ===================== -->
+    <section id="comparar" class="seccao seccao--alt" aria-labelledby="titulo-comparar">
+      <div class="contentor">
+        <h2 id="titulo-comparar">Comparar pacotes</h2>
+        <p id="comparar-vazio" class="suave">Escolha até 3 pacotes com o botão <strong>Comparar</strong> para os ver lado a lado.</p>
+        <div id="comparar-tabela" class="tabela-rolar" tabindex="0" role="region" aria-label="Tabela de comparação" hidden></div>
+      </div>
+    </section>
+
+    <!-- ===================== ADICIONAR PACOTE ===================== -->
+    <section id="novo" class="seccao" aria-labelledby="titulo-novo">
+      <div class="contentor contentor--estreito">
+        <h2 id="titulo-novo">Adicionar um pacote</h2>
+        <p class="suave">Os pacotes que adicionar ficam guardados neste dispositivo.</p>
+
+        <form id="form-novo" class="formulario" novalidate>
+          <div class="campo">
+            <label for="f-nome">Nome do pacote</label>
+            <input id="f-nome" name="nome" type="text" maxlength="40" required aria-describedby="erro-nome">
+            <p class="erro" id="erro-nome" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="f-categoria">Categoria</label>
+            <select id="f-categoria" name="categoria" required aria-describedby="erro-categoria">
+              <option value="">Escolha uma categoria</option>
+              <option value="internet">Internet</option>
+              <option value="voz">Voz</option>
+              <option value="sms">SMS</option>
+              <option value="combo">Combinado</option>
+            </select>
+            <p class="erro" id="erro-categoria" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="f-periodo">Período</label>
+            <select id="f-periodo" name="periodo" required aria-describedby="erro-periodo">
+              <option value="">Escolha um período</option>
+              <option value="diario">Diário</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensal">Mensal</option>
+            </select>
+            <p class="erro" id="erro-periodo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="f-preco">Preço (MT)</label>
+            <input id="f-preco" name="preco" type="number" min="1" max="100000" step="any" inputmode="decimal" required aria-describedby="erro-preco">
+            <p class="erro" id="erro-preco" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="f-validade">Validade (dias)</label>
+            <input id="f-validade" name="validade" type="number" min="1" max="365" step="1" inputmode="numeric" required aria-describedby="erro-validade">
+            <p class="erro" id="erro-validade" hidden></p>
+          </div>
+
+          <div class="campo campo--larga">
+            <label for="f-descricao">Descrição</label>
+            <input id="f-descricao" name="descricao" type="text" maxlength="100" aria-describedby="erro-descricao">
+            <p class="erro" id="erro-descricao" hidden></p>
+          </div>
+
+          <div class="formulario__acoes">
+            <button type="submit" class="botao">Adicionar pacote</button>
+            <button type="button" id="btn-repor" class="botao botao--leve">Repor pacotes iniciais</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== COMPARAÇÃO COM O SITE ORIGINAL ===================== -->
+    <section id="melhorias" class="seccao seccao--alt" aria-labelledby="titulo-melhorias">
+      <div class="contentor">
+        <h2 id="titulo-melhorias">O que melhorou na experiência do utilizador</h2>
+        <!-- DICA PARA O RELATÓRIO: ao lado de cada linha, escreva o problema que encontrou no site original. -->
+        <div class="tabela-rolar" tabindex="0" role="region" aria-label="Melhorias do redesenho">
+          <table class="tabela">
+            <caption class="so-leitor">Critérios de usabilidade e solução aplicada</caption>
+            <thead>
+              <tr><th scope="col">Critério</th><th scope="col">Solução neste redesenho</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Navegação</th><td>Menu fixo no topo com 4 secções e atalho "Saltar para o conteúdo".</td></tr>
+              <tr><th scope="row">Pesquisa</th><td>Resultados enquanto escreve; ignora acentos e maiúsculas; aceita vários termos.</td></tr>
+              <tr><th scope="row">Filtros e ordem</th><td>Categoria, período e 5 critérios de ordenação, com contador de resultados.</td></tr>
+              <tr><th scope="row">Decisão de compra</th><td>Comparação de até 3 pacotes com custo por dia.</td></tr>
+              <tr><th scope="row">Feedback visual</th><td>Avisos de confirmação, erros junto de cada campo e confirmação antes de remover.</td></tr>
+              <tr><th scope="row">Acessibilidade</th><td>HTML semântico, rótulos nos campos, foco visível, contraste elevado e respeito pela opção "reduzir animações".</td></tr>
+              <tr><th scope="row">Dispositivos móveis</th><td>Layout adaptável (Grid e Flexbox) e botões com pelo menos 44 px.</td></tr>
+              <tr><th scope="row">Desempenho</th><td>Sem bibliotecas nem fontes externas; tempo de pesquisa e de carregamento medidos abaixo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== RODAPÉ COM MÉTRICAS ===================== -->
+  <footer class="rodape">
+    <div class="contentor">
+      <h2 class="rodape__titulo">Métricas desta sessão</h2>
+      <dl class="metricas">
+        <div><dt>Tempo de carregamento</dt><dd id="m-carga">–</dd></div>
+        <div><dt>Última pesquisa</dt><dd id="m-busca">–</dd></div>
+        <div><dt>Interacções</dt><dd id="m-interacoes">0</dd></div>
+        <div><dt>Pacotes guardados</dt><dd id="m-total">0</dd></div>
+      </dl>
+      <p class="rodape__nota">Projecto académico de redesenho. Não é o site oficial da Movitel.</p>
+    </div>
+  </footer>
+
+  <!-- Janela de confirmação (elemento nativo <dialog>, acessível por teclado) -->
+  <dialog id="dialogo" aria-labelledby="dialogo-texto">
+    <p id="dialogo-texto"></p>
+    <div class="dialogo__acoes">
+      <button type="button" id="dialogo-cancelar" class="botao botao--leve">Cancelar</button>
+      <button type="button" id="dialogo-confirmar" class="botao botao--perigo">Confirmar</button>
+    </div>
+  </dialog>
+
+  <!-- Zona dos avisos (toast) -->
+  <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+</body>
+</html>
